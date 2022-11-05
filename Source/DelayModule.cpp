@@ -15,5 +15,5 @@ void ChorusParams::updateDelay() {
 
 	float delta = (depthVal / 100) * oscVal * MAX_DELTA;
 
-	delay = DELAY_CENTER + delta;
+	this->delay = DELAY_CENTER + delta;
 }

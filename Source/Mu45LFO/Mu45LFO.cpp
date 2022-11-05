@@ -36,7 +36,7 @@ void Mu45LFO::resetPhase()
 
 void Mu45LFO::setPhase(float deg)
 {
-    phase = (deg / 360) * 1024; // not sure if this works
+    //phase = (deg / 360) * 1024; // not sure if this works
 }
 
 // update the phase of the LFO and produce an output sample

@@ -45,16 +45,15 @@ ChaseGP04PrimaryChorusAudioProcessor::ChaseGP04PrimaryChorusAudioProcessor()
             "Depth " + std::to_string(i + 1) + " (%)", // parameterName,
             0.0f, // minValue,
             100.0f, // maxValue,
-            50.0f)); // default
+            20.0f)); // default
 
-        chorusParams.push_back(ChorusParams(tempRate, tempDepth, mFs));
+        tempRates.push_back(tempRate);
+        tempDepths.push_back(tempDepth);
     }
-    chorusParams[0].osc.setPhase(90.0f);
-    chorusParams[2].osc.setPhase(270.0f);
 
-    delays.push_back(stk::DelayL());
-    delays.push_back(stk::DelayL());
-    delays.push_back(stk::DelayL());
+    delays.push_back(stk::DelayA());
+    delays.push_back(stk::DelayA());
+    delays.push_back(stk::DelayA());
 }
 
 ChaseGP04PrimaryChorusAudioProcessor::~ChaseGP04PrimaryChorusAudioProcessor()
@@ -131,8 +130,12 @@ void ChaseGP04PrimaryChorusAudioProcessor::prepareToPlay (double sampleRate, int
     int maxSamps = calcMsecToSamps(MAXDELAYMS);
 
     for (int i = 0; i < numDelays; i++) {
+        chorusParams.push_back(ChorusParams(tempRates[i], tempDepths[i], mFs/mControlN));
         delays[i].setMaximumDelay(maxSamps);
     }
+
+    chorusParams[0].osc.setPhase(90.0f);
+    chorusParams[2].osc.setPhase(270.0f);
 }
 
 void ChaseGP04PrimaryChorusAudioProcessor::releaseResources()
@@ -167,8 +170,8 @@ bool ChaseGP04PrimaryChorusAudioProcessor::isBusesLayoutSupported (const BusesLa
 }
 #endif
 
-int ChaseGP04PrimaryChorusAudioProcessor::calcMsecToSamps(float maxDelay) {
-    return (maxDelay / 1000.0f) * mFs;
+float ChaseGP04PrimaryChorusAudioProcessor::calcMsecToSamps(float ms) {
+    return (ms / 1000.0f) * mFs;
 }
 
 void ChaseGP04PrimaryChorusAudioProcessor::setWetDryBalance(float userIn) {
@@ -179,13 +182,6 @@ void ChaseGP04PrimaryChorusAudioProcessor::setWetDryBalance(float userIn) {
 
 void ChaseGP04PrimaryChorusAudioProcessor::calcAlgorithmParams() {
     setWetDryBalance(wetDryParam->get());
-
-    int sampsDelay;
-    for (int i = 0; i < numDelays; i++) {
-        sampsDelay = calcMsecToSamps(chorusParams[i].delay);
-        delays[i].setDelay(sampsDelay);
-        chorusParams[i].updateDelay();
-    }
 }
 
 void ChaseGP04PrimaryChorusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
@@ -205,9 +201,19 @@ void ChaseGP04PrimaryChorusAudioProcessor::processBlock (AudioBuffer<float>& buf
     float channelC; // mix of channelL and channelR
 
     float tempL, tempC, tempR;
-
     for (int samp = 0; samp < buffer.getNumSamples(); samp++)
     {
+        if (mControlCounter % mControlN == 0) {
+            float sampsDelay;
+            for (int i = 0; i < numDelays; i++) {
+                sampsDelay = calcMsecToSamps(chorusParams[i].delay);
+                delays[i].setDelay(sampsDelay);
+                chorusParams[i].updateDelay();
+            }
+            mControlCounter = 0;
+        }
+        mControlCounter++;
+
         channelC = 0.5 * (channelL[samp] + channelR[samp]);
         for (int i = 0; i < numDelays; i++) {
             tempL = delays[0].tick(channelL[samp]);

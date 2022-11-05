@@ -16,11 +16,12 @@ class ChorusParams {
 
 		Mu45LFO osc;
 
+		float fs;
+
 		ChorusParams(AudioParameterFloat* rate, AudioParameterFloat* depth, float fs);
 		void updateDelay();
 	private:
-		const float DELAY_CENTER = 23.5f;
-		const float MAX_DELTA = 16.5f; // max change from center @ 100% depth
-		float fs;
+		float DELAY_CENTER = 23.5f;
+		float MAX_DELTA = 16.5f; // max change from center @ 100% depth
 };
 

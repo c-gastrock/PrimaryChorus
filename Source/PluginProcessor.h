@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "DelayModule.h"
-#include "StkLite-4.6.2/DelayL.h"
+#include "StkLite-4.6.2/DelayA.h"
 
 #define MAXDELAYMS 40.0f
 #define MINDELAYMS 7.0f
@@ -74,13 +74,19 @@ private:
     // Private algo
     int numDelays = 3;
     float wetGain, dryGain;
+
+    std::vector<AudioParameterFloat*> tempRates;
+    std::vector<AudioParameterFloat*> tempDepths;
     std::vector<ChorusParams> chorusParams;
 
-    std::vector<stk::DelayL> delays; // LCR delays, 0/1/2
+    std::vector<stk::DelayA> delays; // LCR delays, 0/1/2
     float mFs;
+
+    long mControlCounter = 0; // The control rate counter
+    int mControlN = 5; // How often cntrl rate variables get updated
 
     // Helper methods
     void setWetDryBalance(float userIn);
     void calcAlgorithmParams();
-    int calcMsecToSamps(float maxDelay);
+    float calcMsecToSamps(float maxDelay);
 };
