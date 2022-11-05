@@ -14,7 +14,6 @@
 
 #define MAXDELAYMS 40.0f
 #define MINDELAYMS 7.0f
-#define PI MathConstants<float>::pi
 
 using namespace juce;
 
